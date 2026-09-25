@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>甜蜜健身計畫 | Sweet Fitness Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                        },
+                        blush: {
+                            100: '#fff0f3',
+                            200: '#ffccd5',
+                            300: '#ffb3c1',
+                            400: '#ff85a1',
+                            500: '#f72585',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Outfit', sans-serif;
+            background-color: #fff9fa;
+            color: #2b2d42;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(254, 205, 211, 0.6);
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(254, 205, 211, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #fecdd3;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-24 md:pb-8 max-w-md mx-auto relative shadow-2xl bg-gradient-to-b from-rose-50/60 via-white to-rose-50/40">
+
+    <!-- Header / Love Banner -->
+    <header class="p-5 pt-7 bg-gradient-to-r from-rose-100/90 via-pink-50 to-rose-100/90 rounded-b-3xl shadow-sm border-b border-rose-200/50 relative overflow-hidden">
+        <div class="absolute -right-6 -top-6 w-24 h-24 bg-rose-200/40 rounded-full blur-xl pointer-events-none"></div>
+        <div class="absolute -left-6 -bottom-6 w-28 h-28 bg-pink-200/40 rounded-full blur-xl pointer-events-none"></div>
+
+        <div class="flex justify-between items-center relative z-10">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-rose-400 to-pink-300 flex items-center justify-center text-white font-bold text-xl shadow-md ring-2 ring-white">
+                    <span id="userAvatar">❤️</span>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-1.5">
+                        <h1 class="text-xl font-bold text-gray-800" id="userNameDisplay">寶貝</h1>
+                        <button onclick="openProfileModal()" class="text-xs text-rose-400 hover:text-rose-600 p-1">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-rose-500 font-medium flex items-center gap-1 mt-0.5">
+                        <i class="fa-solid fa-sparkles text-rose-400"></i>
+                        <span id="dailyGreeting">今天也要加油，你最棒了！</span>
+                    </p>
+                </div>
+            </div>
+            <div class="text-right">
+                <span class="text-xs text-gray-400 font-medium block" id="currentDateStr">--/--</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-600 mt-1">
+                    <i class="fa-solid fa-fire text-rose-500 mr-1 text-[10px]"></i>連續 <span id="streakDaysCount">0</span> 天
+                </span>
+            </div>
+        </div>
+
+        <!-- Heart Encouragement Note -->
+        <div class="mt-4 bg-white/80 backdrop-blur-sm p-3 rounded-2xl border border-rose-100 flex items-center justify-between text-xs text-rose-700 shadow-xs">
+            <div class="flex items-center space-x-2">
+                <span class="text-base">💌</span>
+                <p class="italic text-gray-600" id="encouragementNote">「每完成一個組數，都離完美的自己更近一步！」</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Tabs Container -->
+    <main class="flex-1 p-4 space-y-5">
+
+        <!-- Tab 1: 今日訓練 (Active Workout Tracking) -->
+        <section id="tab-today" class="tab-content space-y-4">
+            <!-- Active Program Banner -->
+            <div class="bg-gradient-to-r from-rose-500 to-pink-500 text-white p-4 rounded-3xl shadow-md flex justify-between items-center relative overflow-hidden">
+                <div class="relative z-10">
+                    <span class="text-[10px] uppercase font-bold tracking-wider bg-white/20 backdrop-blur-xs px-2.5 py-0.5 rounded-full">當前執行課表</span>
+                    <h2 class="text-lg font-bold mt-1" id="activeProgramTitle">未選擇課表</h2>
+                    <p class="text-xs text-rose-100 mt-0.5" id="activeProgramDesc">點擊右側按鈕切換或新建計畫</p>
+                </div>
+                <button onclick="switchTab('programs')" class="relative z-10 px-3 py-1.5 bg-white text-rose-600 hover:bg-rose-50 text-xs font-bold rounded-xl shadow-sm transition active:scale-95">
+                    切換課表
+                </button>
+            </div>
+
+            <!-- Rest Timer Bar -->
+            <div class="glass-card p-3.5 rounded-2xl shadow-xs flex items-center justify-between border border-rose-100">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-500 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-stopwatch"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-medium">組間休息計時器</p>
+                        <p class="text-lg font-bold text-gray-800 font-mono tracking-wider" id="timerDisplay">01:00</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1.5">
+                    <button onclick="setTimerSeconds(30)" class="px-2 py-1 bg-rose-50 text-rose-600 text-[11px] font-semibold rounded-lg">30秒</button>
+                    <button onclick="setTimerSeconds(60)" class="px-2 py-1 bg-rose-50 text-rose-600 text-[11px] font-semibold rounded-lg">60秒</button>
+                    <button onclick="setTimerSeconds(90)" class="px-2 py-1 bg-rose-50 text-rose-600 text-[11px] font-semibold rounded-lg">90秒</button>
+                    <button onclick="startTimer()" class="px-3 py-1 bg-rose-500 text-white text-xs font-bold rounded-lg shadow-xs"><i class="fa-solid fa-play"></i></button>
+                    <button onclick="resetTimer()" class="px-2 py-1 bg-gray-100 text-gray-500 text-xs rounded-lg"><i class="fa-solid fa-rotate-right"></i></button>
+                </div>
+            </div>
+
+            <!-- Exercises Live Tracker List -->
+            <div id="todayExercisesContainer" class="space-y-4">
+                <!-- Rendered dynamically -->
+            </div>
+
+            <!-- Finish Workout Button -->
+            <button onclick="finishWorkoutSession()" class="w-full py-3.5 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-bold rounded-2xl shadow-md transition active:scale-98 flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-flag-checkered text-base"></i> 完成今日訓練並存檔
+            </button>
+        </section>
+
+        <!-- Tab 2: 課表管理 (Program Builder & Routines Manager) -->
+        <section id="tab-programs" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-plus text-rose-500"></i> 專屬課表管理
+                    </h2>
+                    <p class="text-xs text-gray-500">設計與編輯給她的專屬健身計畫</p>
+                </div>
+                <button onclick="openCreateProgramModal()" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium rounded-xl shadow-md transition active:scale-95 flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-xs"></i> 建立新課表
+                </button>
+            </div>
+
+            <!-- Program Cards List -->
+            <div id="programListContainer" class="space-y-3">
+                <!-- Rendered dynamically -->
+            </div>
+        </section>
+
+        <!-- Tab 3: 動作庫 (Exercise Library) -->
+        <section id="tab-library" class="tab-content hidden space-y-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-book-open text-rose-500"></i> 動作資料庫
+                    </h2>
+                    <p class="text-xs text-gray-500">挑選或自訂健身動作</p>
+                </div>
+                <button onclick="openCustomExModal()" class="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-medium rounded-xl shadow-md transition active:scale-95 flex items-center gap-1">
+                    <i class="fa-solid fa-plus text-xs"></i> 自訂動作
+                </button>
+            </div>
+
+            <!-- Category Pills -->
+            <div class="flex space-x-2 overflow-x-auto pb-1 custom-scrollbar text-xs">
+                <button onclick="filterLibrary('全選')" class="lib-filter-btn px-3 py-1.5 rounded-xl bg-rose-500 text-white font-medium whitespace-nowrap shadow-xs">全部</button>
+                <button onclick="filterLibrary('臀腿')" class="lib-filter-btn px-3 py-1.5 rounded-xl bg-white text-gray-600 font-medium whitespace-nowrap border border-gray-200">🍑 臀腿</button>
+                <button onclick="filterLibrary('背部')" class="lib-filter-btn px-3 py-1.5 rounded-xl bg-white text-gray-600 font-medium whitespace-nowrap border border-gray-200">🦋 背部</button>
+                <button onclick="filterLibrary('胸肩')" class="lib-filter-btn px-3 py-1.5 rounded-xl bg-white text-gray-600 font-medium whitespace-nowrap border border-gray-200">✨ 胸肩</button>
+                <button onclick="filterLibrary('核心')" class="lib-filter-btn px-3 py-1.5 rounded-xl bg-white text-gray-600 font-medium whitespace-nowrap border border-gray-200">🔥 核心</button>
+            </div>
+
+            <!-- Library Items List -->
+            <div id="libraryListContainer" class="grid grid-cols-1 gap-3">
+                <!-- Rendered dynamically -->
+            </div>
+        </section>
+
+        <!-- Tab 4: 成果紀錄 (History & Stats) -->
+        <section id="tab-history" class="tab-content hidden space-y-4">
+            <div>
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-rose-500"></i> 訓練成果紀錄
+                </h2>
+                <p class="text-xs text-gray-500">記錄每一次成長與愛的付出</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-2.5">
+                <div class="glass-card p-3 rounded-2xl text-center border border-rose-100">
+                    <p class="text-[10px] text-gray-400 font-medium">累積完成</p>
+                    <p class="text-lg font-bold text-rose-500 mt-1"><span id="statTotalWorkouts">0</span> <span class="text-xs text-gray-500 font-normal">次</span></p>
+                </div>
+                <div class="glass-card p-3 rounded-2xl text-center border border-rose-100">
+                    <p class="text-[10px] text-gray-400 font-medium">總訓練容量</p>
+                    <p class="text-lg font-bold text-rose-500 mt-1"><span id="statTotalVolume">0</span> <span class="text-xs text-gray-500 font-normal">kg</span></p>
+                </div>
+                <div class="glass-card p-3 rounded-2xl text-center border border-rose-100">
+                    <p class="text-[10px] text-gray-400 font-medium">總完成組數</p>
+                    <p class="text-lg font-bold text-rose-500 mt-1"><span id="statTotalSets">0</span> <span class="text-xs text-gray-500 font-normal">組</span></p>
+                </div>
+            </div>
+
+            <!-- History Logs -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-sm font-bold text-gray-700">歷史日誌</h3>
+                    <button onclick="clearHistoryConfirm()" class="text-xs text-gray-400 hover:text-rose-500">清除紀錄</button>
+                </div>
+                <div id="historyLogsContainer" class="space-y-3">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass-nav z-30 px-3 py-2 flex justify-around items-center rounded-t-3xl shadow-lg">
+        <button onclick="switchTab('today')" id="nav-today" class="nav-btn flex flex-col items-center py-1 px-3 rounded-2xl text-rose-500 transition">
+            <i class="fa-solid fa-calendar-day text-lg"></i>
+            <span class="text-[10px] font-medium mt-0.5">今日訓練</span>
+        </button>
+        <button onclick="switchTab('programs')" id="nav-programs" class="nav-btn flex flex-col items-center py-1 px-3 rounded-2xl text-gray-400 hover:text-rose-400 transition">
+            <i class="fa-solid fa-sliders text-lg"></i>
+            <span class="text-[10px] font-medium mt-0.5">課表編輯</span>
+        </button>
+        <button onclick="switchTab('library')" id="nav-library" class="nav-btn flex flex-col items-center py-1 px-3 rounded-2xl text-gray-400 hover:text-rose-400 transition">
+            <i class="fa-solid fa-dumbbell text-lg"></i>
+            <span class="text-[10px] font-medium mt-0.5">動作庫</span>
+        </button>
+        <button onclick="switchTab('history')" id="nav-history" class="nav-btn flex flex-col items-center py-1 px-3 rounded-2xl text-gray-400 hover:text-rose-400 transition">
+            <i class="fa-solid fa-heart-pulse text-lg"></i>
+            <span class="text-[10px] font-medium mt-0.5">成果紀錄</span>
+        </button>
+    </nav>
+
+    <!-- Modal 1: Profile Settings -->
+    <div id="modalProfile" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-xl border border-rose-100">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="font-bold text-gray-800 text-base">設定愛意資料</h3>
+                <button onclick="closeModal('modalProfile')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">對她的暱稱</label>
+                    <input type="text" id="inputNickname" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-400">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">每日問候語</label>
+                    <input type="text" id="inputGreeting" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-400">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">愛意悄悄話</label>
+                    <textarea id="inputEncouragement" rows="2" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-400"></textarea>
+                </div>
+            </div>
+            <button onclick="saveProfileSettings()" class="w-full py-2.5 bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-md">儲存設定</button>
+        </div>
+    </div>
+
+    <!-- Modal 2: Program Editor (Create/Edit Routine) -->
+    <div id="modalProgramEditor" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[90vh] flex flex-col shadow-xl">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="font-bold text-gray-800 text-base" id="programModalTitle">編輯訓練課表</h3>
+                <button onclick="closeModal('modalProgramEditor')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="overflow-y-auto space-y-3 custom-scrollbar flex-1 pr-1 text-xs">
+                <input type="hidden" id="editingProgramId">
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">課表名稱</label>
+                    <input type="text" id="inputProgramTitle" placeholder="例如：腿臀專攻重點日" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-400 font-medium">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">課表說明 / 備註</label>
+                    <input type="text" id="inputProgramDesc" placeholder="例如：注重頂峰收縮，每組間休息60秒" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-400">
+                </div>
+
+                <!-- Exercises inside Program -->
+                <div class="pt-2">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="font-bold text-gray-800">課表動作列表</label>
+                        <button onclick="openSelectExForProgram()" class="px-2.5 py-1 bg-rose-100 text-rose-600 font-bold rounded-lg text-[11px]">
+                            + 新增動作
+                        </button>
+                    </div>
+                    <div id="programExercisesList" class="space-y-2">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-2">
+                <button onclick="saveProgram()" class="w-full py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl text-xs shadow-md">儲存課表</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Add Exercise to Program Selector -->
+    <div id="modalSelectExForProgram" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 max-h-[80vh] flex flex-col shadow-xl">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-2">
+                <h3 class="font-bold text-gray-800 text-sm">選擇要加入的動作</h3>
+                <button onclick="closeModal('modalSelectExForProgram')" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="selectExForProgramList" class="overflow-y-auto space-y-2 custom-scrollbar flex-1 pr-1 text-xs">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 4: Custom Exercise Modal -->
+    <div id="modalCustomEx" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-xl border border-rose-100">
+            <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+                <h3 class="font-bold text-gray-800 text-base">新增自訂動作</h3>
+                <button onclick="closeModal('modalCustomEx')" class="text-gray-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">動作名稱</label>
+                    <input type="text" id="inputCustomExName" placeholder="例如：彈力帶臀外展" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-400">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">肌肉部位</label>
+                    <select id="selectCustomExCat" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-400 bg-white">
+                        <option value="臀腿">🍑 臀腿</option>
+                        <option value="背部">🦋 背部</option>
+                        <option value="胸肩">✨ 胸肩</option>
+                        <option value="核心">🔥 核心</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">動作要領 / 貼心提示</label>
+                    <textarea id="inputCustomExNotes" rows="2" placeholder="例如：注意發力感，慢下快上" class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-400"></textarea>
+                </div>
+            </div>
+            <button onclick="saveCustomExercise()" class="w-full py-2.5 bg-rose-500 text-white font-semibold rounded-xl text-xs shadow-md">新增至動作庫</button>
+        </div>
+    </div>
+
+    <script>
+        // Default Exercises
+        const DEFAULT_EXERCISES = [
+            { id: 'ex_1', name: '槓鈴臀推 (Barbell Hip Thrust)', category: '臀腿', icon: '🍑', notes: '頂峰收縮夾緊臀部1-2秒，下放過程控制速度。' },
+            { id: 'ex_2', name: '啞鈴深蹲 (Goblet Squat)', category: '臀腿', icon: '🦵', notes: '核心收緊，膝蓋順著腳尖方向，感受臀腿發力。' },
+            { id: 'ex_3', name: '羅馬尼亞硬舉 (RDL)', category: '臀腿', icon: '🍑', notes: '髖關節後推，感受臀大肌與大腿後側拉伸感。' },
+            { id: 'ex_4', name: '滑輪下拉 (Lat Pulldown)', category: '背部', icon: '🦋', notes: '挺胸不挺腰，用背肌帶動手肘向下拉。' },
+            { id: 'ex_5', name: '坐姿啞鈴划船', category: '背部', icon: '🛶', notes: '保持背部平直，感受肩胛骨夾緊的感覺。' },
+            { id: 'ex_6', name: '上胸啞鈴臥推', category: '胸肩', icon: '✨', defaultSets: 3, defaultReps: 12, notes: '調整椅背約30度，下放時手肘呈90度。' },
+            { id: 'ex_7', name: '啞鈴側平舉 (飛鳥)', category: '胸肩', icon: '🦅', notes: '沉肩，微曲手肘，發力帶到肩膀側三角肌。' },
+            { id: 'ex_8', name: '棒式 / 平板支撐', category: '核心', icon: '🔥', notes: '收緊腹部與臀部，保持身體呈現直線。' }
+        ];
+
+        // Default Programs
+        const DEFAULT_PROGRAMS = [
+            {
+                id: 'prog_1',
+                title: '🍑 蜜桃臀與腿部極致專攻',
+                desc: '打造迷人線條，注重頂峰收縮感',
+                exercises: [
+                    { id: 'ex_1', name: '槓鈴臀推 (Barbell Hip Thrust)', targetSets: 4, targetReps: '12', notes: '頂峰收縮夾緊臀部1-2秒' },
+                    { id: 'ex_3', name: '羅馬尼亞硬舉 (RDL)', targetSets: 4, targetReps: '10', notes: '髖關節後推，拉伸大腿後側' },
+                    { id: 'ex_2', name: '啞鈴深蹲 (Goblet Squat)', targetSets: 3, targetReps: '12', notes: '全程保持核心穩定' }
+                ]
+            },
+            {
+                id: 'prog_2',
+                title: '🦋 氣質美背與姿態雕塑',
+                desc: '改善體態，打造流暢背部與肩膀線條',
+                exercises: [
+                    { id: 'ex_4', name: '滑輪下拉 (Lat Pulldown)', targetSets: 4, targetReps: '12', notes: '沉肩挺胸，手肘引導下壓' },
+                    { id: 'ex_5', name: '坐姿啞鈴划船', targetSets: 3, targetReps: '12', notes: '肩胛骨夾緊停頓' },
+                    { id: 'ex_7', name: '啞鈴側平舉 (飛鳥)', targetSets: 4, targetReps: '15', notes: '手臂微彎，手肘帶動' }
+                ]
+            }
+        ];
+
+        // State Management
+        let appData = {
+            profile: {
+                nickname: '寶貝',
+                greeting: '今天也要加油，你最棒了！',
+                encouragement: '「每完成一個組數，都離完美的自己更近一步！」',
+                streak: 3
+            },
+            activeProgramId: 'prog_1',
+            programs: [...DEFAULT_PROGRAMS],
+            exercises: [...DEFAULT_EXERCISES],
+            activeSession: {}, // Keyed by exercise id: [{ weight: 20, reps: 12, completed: true }]
+            history: []
+        };
+
+        // Temporary editing state for program modal
+        let tempProgramExercises = [];
+
+        // Timer State
+        let timerInterval = null;
+        let timerRemaining = 60;
+
+        // --- Initialization ---
+        window.onload = function() {
+            loadFromLocalStorage();
+            updateDateDisplay();
+            renderProfile();
+            renderTodayTab();
+            renderProgramsTab();
+            renderLibrary('全選');
+            renderHistory();
+        };
+
+        function updateDateDisplay() {
+            const now = new Date();
+            const options = { month: '2-digit', day: '2-digit', weekday: 'short' };
+            document.getElementById('currentDateStr').innerText = now.toLocaleDateString('zh-TW', options);
+        }
+
+        // --- LocalStorage ---
+        function saveToLocalStorage() {
+            localStorage.setItem('sweet_fitness_app_v2', JSON.stringify(appData));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('sweet_fitness_app_v2');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appData = { ...appData, ...parsed };
+                } catch(e) {
+                    console.error("Local storage load error", e);
+                }
+            }
+        }
+
+        // --- Profile ---
+        function renderProfile() {
+            document.getElementById('userNameDisplay').innerText = appData.profile.nickname || '寶貝';
+            document.getElementById('dailyGreeting').innerText = appData.profile.greeting || '今天也要加油！';
+            document.getElementById('encouragementNote').innerText = appData.profile.encouragement || '「加油！」';
+            document.getElementById('streakDaysCount').innerText = appData.profile.streak || 0;
+        }
+
+        function openProfileModal() {
+            document.getElementById('inputNickname').value = appData.profile.nickname;
+            document.getElementById('inputGreeting').value = appData.profile.greeting;
+            document.getElementById('inputEncouragement').value = appData.profile.encouragement;
+            openModal('modalProfile');
+        }
+
+        function saveProfileSettings() {
+            appData.profile.nickname = document.getElementById('inputNickname').value.trim() || '寶貝';
+            appData.profile.greeting = document.getElementById('inputGreeting').value.trim() || '今天也要加油！';
+            appData.profile.encouragement = document.getElementById('inputEncouragement').value.trim() || '「加油！」';
+            saveToLocalStorage();
+            renderProfile();
+            closeModal('modalProfile');
+        }
+
+        // --- Tab Navigation ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-rose-500');
+                btn.classList.add('text-gray-400');
+            });
+            document.getElementById(`nav-${tabName}`).classList.remove('text-gray-400');
+            document.getElementById(`nav-${tabName}`).classList.add('text-rose-500');
+        }
+
+        // --- STREAMING_CHUNK:Implementing Program Builder Logic... ---
+        // --- Tab 1: Today Workout Tracking ---
+        function renderTodayTab() {
+            const activeProg = appData.programs.find(p => p.id === appData.activeProgramId) || appData.programs[0];
+
+            if (!activeProg) {
+                document.getElementById('activeProgramTitle').innerText = '無選擇課表';
+                document.getElementById('activeProgramDesc').innerText = '請至「課表編輯」新增或選擇課表';
+                document.getElementById('todayExercisesContainer').innerHTML = `
+                    <div class="text-center py-8 glass-card rounded-2xl p-4">
+                        <p class="text-xs text-gray-500">目前沒有選擇任何訓練課表喔！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('activeProgramTitle').innerText = activeProg.title;
+            document.getElementById('activeProgramDesc').innerText = activeProg.desc || '今日專屬訓練任務';
+
+            const container = document.getElementById('todayExercisesContainer');
+
+            if (!activeProg.exercises || activeProg.exercises.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 glass-card rounded-2xl p-4">
+                        <p class="text-xs text-gray-500">此課表目前沒有包含任何動作，請編輯課表加入動作！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = activeProg.exercises.map((ex, exIdx) => {
+                // Initialize activeSession for ex if empty
+                if (!appData.activeSession[ex.id]) {
+                    appData.activeSession[ex.id] = Array.from({ length: ex.targetSets || 3 }, () => ({
+                        weight: 10,
+                        reps: ex.targetReps || 12,
+                        completed: false
+                    }));
+                }
+
+                const sets = appData.activeSession[ex.id];
+
+                return `
+                    <div class="glass-card p-4 rounded-2xl shadow-xs border border-rose-100 space-y-3">
+                        <div class="flex justify-between items-center border-b border-rose-100 pb-2">
+                            <div>
+                                <h3 class="text-sm font-bold text-gray-800">${ex.name}</h3>
+                                ${ex.notes ? `<p class="text-[10px] text-rose-500 mt-0.5"><i class="fa-regular fa-note-sticky mr-1"></i>${ex.notes}</p>` : ''}
+                            </div>
+                            <button onclick="addSetToActiveEx('${ex.id}')" class="text-xs text-rose-500 hover:text-rose-600 font-bold">
+                                + 增加一組
+                            </button>
+                        </div>
+
+                        <!-- Table Headers -->
+                        <div class="grid grid-cols-12 text-[10px] font-bold text-gray-400 text-center px-1">
+                            <div class="col-span-2">組數</div>
+                            <div class="col-span-4">重量 (kg)</div>
+                            <div class="col-span-4">次數 (reps)</div>
+                            <div class="col-span-2">完成</div>
+                        </div>
+
+                        <!-- Sets List -->
+                        <div class="space-y-1.5">
+                            ${sets.map((set, sIdx) => `
+                                <div class="grid grid-cols-12 items-center text-center gap-1.5 p-1 rounded-xl ${set.completed ? 'bg-emerald-50 border border-emerald-100' : 'bg-gray-50/80'} transition">
+                                    <div class="col-span-2 font-bold text-xs ${set.completed ? 'text-emerald-600' : 'text-gray-500'}">第 ${sIdx + 1} 組</div>
+                                    <div class="col-span-4">
+                                        <input type="number" value="${set.weight}" onchange="updateSetVal('${ex.id}', ${sIdx}, 'weight', this.value)" 
+                                            class="w-full text-center py-1 text-xs font-semibold rounded-lg border border-gray-200 focus:outline-none focus:border-rose-400 bg-white">
+                                    </div>
+                                    <div class="col-span-4">
+                                        <input type="number" value="${set.reps}" onchange="updateSetVal('${ex.id}', ${sIdx}, 'reps', this.value)" 
+                                            class="w-full text-center py-1 text-xs font-semibold rounded-lg border border-gray-200 focus:outline-none focus:border-rose-400 bg-white">
+                                    </div>
+                                    <div class="col-span-2 flex justify-center">
+                                        <button onclick="toggleSetComplete('${ex.id}', ${sIdx})" 
+                                            class="w-7 h-7 rounded-lg flex items-center justify-center transition ${set.completed ? 'bg-emerald-500 text-white shadow-xs' : 'bg-white border border-gray-300 text-gray-300'}">
+                                            <i class="fa-solid fa-check text-xs"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateSetVal(exId, setIdx, field, val) {
+            if (appData.activeSession[exId] && appData.activeSession[exId][setIdx]) {
+                appData.activeSession[exId][setIdx][field] = parseFloat(val) || 0;
+                saveToLocalStorage();
+            }
+        }
+
+        function toggleSetComplete(exId, setIdx) {
+            if (appData.activeSession[exId] && appData.activeSession[exId][setIdx]) {
+                const currentStatus = appData.activeSession[exId][setIdx].completed;
+                appData.activeSession[exId][setIdx].completed = !currentStatus;
+
+                if (!currentStatus) startTimer();
+
+                saveToLocalStorage();
+                renderTodayTab();
+            }
+        }
+
+        function addSetToActiveEx(exId) {
+            if (!appData.activeSession[exId]) appData.activeSession[exId] = [];
+            const lastSet = appData.activeSession[exId][appData.activeSession[exId].length - 1] || { weight: 10, reps: 12 };
+            appData.activeSession[exId].push({
+                weight: lastSet.weight,
+                reps: lastSet.reps,
+                completed: false
+            });
+            saveToLocalStorage();
+            renderTodayTab();
+        }
+
+        // --- Rest Timer ---
+        function setTimerSeconds(sec) {
+            timerRemaining = sec;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerRemaining / 60);
+            const secs = timerRemaining % 60;
+            document.getElementById('timerDisplay').innerText = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerRemaining--;
+                updateTimerDisplay();
+                if (timerRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    playTimerBeep();
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            timerRemaining = 60;
+            updateTimerDisplay();
+        }
+
+        function playTimerBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.value = 600;
+                osc.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch (e) {}
+        }
+
+        function finishWorkoutSession() {
+            let totalVolume = 0;
+            let totalCompletedSets = 0;
+            let summary = [];
+
+            Object.keys(appData.activeSession).forEach(exId => {
+                const ex = appData.exercises.find(e => e.id === exId) || { name: '訓練動作' };
+                const sets = appData.activeSession[exId].filter(s => s.completed);
+
+                if (sets.length > 0) {
+                    let exVol = 0;
+                    sets.forEach(s => {
+                        exVol += s.weight * s.reps;
+                        totalCompletedSets++;
+                    });
+                    totalVolume += exVol;
+                    summary.push(`${ex.name} (${sets.length}組)`);
+                }
+            });
+
+            if (totalCompletedSets === 0) {
+                alert('寶貝，你還沒有完成任何一個組數喔！完成後點擊勾選再存檔吧！');
+                return;
+            }
+
+            const record = {
+                id: 'log_' + Date.now(),
+                date: new Date().toLocaleDateString('zh-TW'),
+                time: new Date().toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }),
+                totalVolume: totalVolume,
+                totalSets: totalCompletedSets,
+                summary: summary.join('、 ')
+            };
+
+            appData.history.unshift(record);
+            appData.profile.streak = (appData.profile.streak || 0) + 1;
+            appData.activeSession = {};
+
+            saveToLocalStorage();
+            renderProfile();
+            renderTodayTab();
+            renderHistory();
+
+            alert(`🎉 恭喜寶貝完成訓練！\n本次共完成 ${totalCompletedSets} 組，總重量容量 ${totalVolume} kg！`);
+            switchTab('history');
+        }
+
+        // --- STREAMING_CHUNK:Program Builder CRUD & Selector Logic... ---
+        // --- Tab 2: Program Builder Logic ---
+        function renderProgramsTab() {
+            const container = document.getElementById('programListContainer');
+            container.innerHTML = appData.programs.map(prog => {
+                const isActive = prog.id === appData.activeProgramId;
+                return `
+                    <div class="glass-card p-4 rounded-2xl border ${isActive ? 'border-rose-400 bg-rose-50/30 ring-2 ring-rose-200' : 'border-rose-100'} space-y-2 shadow-xs">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <h3 class="text-sm font-bold text-gray-800">${prog.title}</h3>
+                                    ${isActive ? '<span class="text-[9px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold">執行中</span>' : ''}
+                                </div>
+                                <p class="text-xs text-gray-500 mt-0.5">${prog.desc || '無備註說明'}</p>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <button onclick="openEditProgramModal('${prog.id}')" class="text-xs text-gray-400 hover:text-rose-500 p-1.5">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button onclick="deleteProgram('${prog.id}')" class="text-xs text-gray-400 hover:text-rose-500 p-1.5">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-[11px] text-gray-600 bg-white/60 p-2 rounded-xl">
+                            <span class="font-bold text-gray-700">包含動作 (${prog.exercises.length})：</span>
+                            ${prog.exercises.map(e => e.name).join('、 ') || '尚無動作'}
+                        </div>
+
+                        <div class="pt-1 flex justify-end">
+                            ${!isActive ? `
+                                <button onclick="setActiveProgram('${prog.id}')" class="px-3 py-1.5 bg-rose-500 text-white text-xs font-bold rounded-xl shadow-xs">
+                                    設為今日課表
+                                </button>
+                            ` : `
+                                <span class="text-xs text-rose-500 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> 今日執行中</span>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function setActiveProgram(progId) {
+            appData.activeProgramId = progId;
+            appData.activeSession = {}; // Reset tracking session for new program
+            saveToLocalStorage();
+            renderProgramsTab();
+            renderTodayTab();
+            switchTab('today');
+        }
+
+        function openCreateProgramModal() {
+            document.getElementById('editingProgramId').value = '';
+            document.getElementById('inputProgramTitle').value = '';
+            document.getElementById('inputProgramDesc').value = '';
+            document.getElementById('programModalTitle').innerText = '建立新課表';
+            tempProgramExercises = [];
+            renderProgramExercisesInModal();
+            openModal('modalProgramEditor');
+        }
+
+        function openEditProgramModal(progId) {
+            const prog = appData.programs.find(p => p.id === progId);
+            if (!prog) return;
+
+            document.getElementById('editingProgramId').value = prog.id;
+            document.getElementById('inputProgramTitle').value = prog.title;
+            document.getElementById('inputProgramDesc').value = prog.desc || '';
+            document.getElementById('programModalTitle').innerText = '編輯課表';
+            tempProgramExercises = JSON.parse(JSON.stringify(prog.exercises || []));
+            renderProgramExercisesInModal();
+            openModal('modalProgramEditor');
+        }
+
+        function renderProgramExercisesInModal() {
+            const container = document.getElementById('programExercisesList');
+            if (tempProgramExercises.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-3">點擊右上角「+ 新增動作」將動作加入課表</p>';
+                return;
+            }
+
+            container.innerHTML = tempProgramExercises.map((ex, idx) => `
+                <div class="p-2.5 bg-rose-50/40 border border-rose-100 rounded-xl space-y-1.5">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-800 text-xs">${idx + 1}. ${ex.name}</span>
+                        <button onclick="removeExFromTempProgram(${idx})" class="text-rose-400 hover:text-rose-600"><i class="fa-solid fa-xmark text-xs"></i></button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div>
+                            <label class="text-gray-500">目標組數</label>
+                            <input type="number" value="${ex.targetSets || 3}" onchange="tempProgramExercises[${idx}].targetSets = parseInt(this.value)||3" class="w-full px-2 py-1 border rounded-lg bg-white">
+                        </div>
+                        <div>
+                            <label class="text-gray-500">目標次數</label>
+                            <input type="text" value="${ex.targetReps || '12'}" onchange="tempProgramExercises[${idx}].targetReps = this.value" class="w-full px-2 py-1 border rounded-lg bg-white">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openSelectExForProgram() {
+            const container = document.getElementById('selectExForProgramList');
+            container.innerHTML = appData.exercises.map(ex => `
+                <div onclick="addExToTempProgram('${ex.id}')" class="p-2.5 border border-gray-100 hover:border-rose-300 rounded-xl flex justify-between items-center cursor-pointer bg-white">
+                    <div>
+                        <p class="font-bold text-gray-800">${ex.name}</p>
+                        <p class="text-[10px] text-gray-400">${ex.category}</p>
+                    </div>
+                    <i class="fa-solid fa-plus text-rose-500"></i>
+                </div>
+            `).join('');
+            openModal('modalSelectExForProgram');
+        }
+
+        function addExToTempProgram(exId) {
+            const ex = appData.exercises.find(e => e.id === exId);
+            if (!ex) return;
+            tempProgramExercises.push({
+                id: ex.id,
+                name: ex.name,
+                targetSets: 3,
+                targetReps: '12',
+                notes: ex.notes || ''
+            });
+            renderProgramExercisesInModal();
+            closeModal('modalSelectExForProgram');
+        }
+
+        function removeExFromTempProgram(idx) {
+            tempProgramExercises.splice(idx, 1);
+            renderProgramExercisesInModal();
+        }
+
+        function saveProgram() {
+            const id = document.getElementById('editingProgramId').value;
+            const title = document.getElementById('inputProgramTitle').value.trim();
+            const desc = document.getElementById('inputProgramDesc').value.trim();
+
+            if (!title) {
+                alert('請輸入課表名稱！');
+                return;
+            }
+
+            if (id) {
+                // Edit existing
+                const prog = appData.programs.find(p => p.id === id);
+                if (prog) {
+                    prog.title = title;
+                    prog.desc = desc;
+                    prog.exercises = tempProgramExercises;
+                }
+            } else {
+                // Create new
+                const newProg = {
+                    id: 'prog_' + Date.now(),
+                    title: title,
+                    desc: desc,
+                    exercises: tempProgramExercises
+                };
+                appData.programs.push(newProg);
+                if (!appData.activeProgramId) appData.activeProgramId = newProg.id;
+            }
+
+            saveToLocalStorage();
+            renderProgramsTab();
+            renderTodayTab();
+            closeModal('modalProgramEditor');
+        }
+
+        function deleteProgram(progId) {
+            if (confirm('確定要刪除這份課表嗎？')) {
+                appData.programs = appData.programs.filter(p => p.id !== progId);
+                if (appData.activeProgramId === progId) {
+                    appData.activeProgramId = appData.programs[0]?.id || null;
+                }
+                saveToLocalStorage();
+                renderProgramsTab();
+                renderTodayTab();
+            }
+        }
+
+        // --- STREAMING_CHUNK:Exercise Library & History Functions... ---
+        // --- Tab 3: Exercise Library ---
+        function renderLibrary(filterCat = '全選') {
+            const container = document.getElementById('libraryListContainer');
+            const filtered = filterCat === '全選' ? appData.exercises : appData.exercises.filter(e => e.category === filterCat);
+
+            container.innerHTML = filtered.map(ex => `
+                <div class="glass-card p-3.5 rounded-2xl border border-rose-100 flex justify-between items-center shadow-xs">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center text-lg">
+                            ${ex.icon || '🏋️‍♀️'}
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-1.5">
+                                <h4 class="text-xs font-bold text-gray-800">${ex.name}</h4>
+                                <span class="text-[9px] px-1.5 py-0.2 bg-rose-100 text-rose-600 rounded-md font-medium">${ex.category}</span>
+                            </div>
+                            ${ex.notes ? `<p class="text-[10px] text-gray-500 mt-0.5">${ex.notes}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterLibrary(cat) {
+            document.querySelectorAll('.lib-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-rose-500', 'text-white');
+                btn.classList.add('bg-white', 'text-gray-600');
+            });
+            event.target.classList.remove('bg-white', 'text-gray-600');
+            event.target.classList.add('bg-rose-500', 'text-white');
+            renderLibrary(cat);
+        }
+
+        function openCustomExModal() {
+            openModal('modalCustomEx');
+        }
+
+        function saveCustomExercise() {
+            const name = document.getElementById('inputCustomExName').value.trim();
+            const category = document.getElementById('selectCustomExCat').value;
+            const notes = document.getElementById('inputCustomExNotes').value.trim();
+
+            if (!name) {
+                alert('請輸入動作名稱！');
+                return;
+            }
+
+            appData.exercises.unshift({
+                id: 'custom_' + Date.now(),
+                name: name,
+                category: category,
+                icon: '🏋️‍♀️',
+                notes: notes
+            });
+
+            saveToLocalStorage();
+            renderLibrary('全選');
+            closeModal('modalCustomEx');
+        }
+
+        // --- Tab 4: History & Stats ---
+        function renderHistory() {
+            const totalWorkouts = appData.history.length;
+            const totalVol = appData.history.reduce((acc, curr) => acc + (curr.totalVolume || 0), 0);
+            const totalSets = appData.history.reduce((acc, curr) => acc + (curr.totalSets || 0), 0);
+
+            document.getElementById('statTotalWorkouts').innerText = totalWorkouts;
+            document.getElementById('statTotalVolume').innerText = totalVol.toLocaleString();
+            document.getElementById('statTotalSets').innerText = totalSets;
+
+            const container = document.getElementById('historyLogsContainer');
+
+            if (appData.history.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 glass-card rounded-2xl p-4">
+                        <i class="fa-solid fa-trophy text-amber-200 text-3xl mb-2"></i>
+                        <p class="text-xs text-gray-500">尚無歷史訓練紀錄，完成第一次運動吧！</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = appData.history.map(item => `
+                <div class="glass-card p-3.5 rounded-2xl border border-rose-100 space-y-1 shadow-xs">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-gray-800 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check text-emerald-500"></i> ${item.date} (${item.time})
+                        </span>
+                        <span class="text-rose-500 font-semibold bg-rose-50 px-2 py-0.5 rounded-md text-[10px]">
+                            ${item.totalSets} 組 | ${item.totalVolume} kg
+                        </span>
+                    </div>
+                    <p class="text-[11px] text-gray-600 line-clamp-2">${item.summary || '訓練項目概覽'}</p>
+                </div>
+            `).join('');
+        }
+
+        function clearHistoryConfirm() {
+            if (confirm('確定要清除所有歷史紀錄嗎？')) {
+                appData.history = [];
+                saveToLocalStorage();
+                renderHistory();
+            }
+        }
+
+        // --- Helpers ---
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    </script>
+</body>
+</html>
