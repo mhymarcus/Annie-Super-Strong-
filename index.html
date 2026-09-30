@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>專屬蜜桃訓練日記</title>
+    
+    <!-- Fonts: Noto Sans TC for beautiful Chinese typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons for elegant scalable icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        rose: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            /* Romantic background gradient */
+            background: linear-gradient(135deg, #ffe4e6 0%, #ffedd5 100%);
+            background-attachment: fixed;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(225, 29, 72, 0.05);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .active-tab {
+            color: #e11d48;
+            font-weight: 700;
+        }
+
+        .active-tab i {
+            color: #e11d48;
+            fill: #e11d48;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pop-anim {
+            animation: pop 0.2s ease-out;
+        }
+
+        /* Checkbox styling */
+        input[type="checkbox"].set-check {
+            appearance: none;
+            background-color: transparent;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid #fda4af;
+            border-radius: 0.35rem;
+            display: grid;
+            place-content: center;
+            transition: all 0.2s;
+        }
+
+        input[type="checkbox"].set-check::before {
+            content: "";
+            width: 0.85rem;
+            height: 0.85rem;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
+            transform-origin: center;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+
+        input[type="checkbox"].set-check:checked {
+            background-color: #f43f5e;
+            border-color: #f43f5e;
+        }
+
+        input[type="checkbox"].set-check:checked::before {
+            transform: scale(1);
+        }
+        
+        .timer-floating {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 50;
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen pb-24 selection:bg-rose-200">
+
+    <div class="max-w-md mx-auto w-full relative h-full">
+        
+        <!-- Header -->
+        <header class="pt-8 pb-4 px-6 sticky top-0 z-40 glass rounded-b-3xl">
+            <h1 class="text-2xl font-bold text-gray-800 tracking-wide flex items-center gap-2" id="header-title">
+                <i class="ph-fill ph-heart text-rose-500"></i> 今日訓練
+            </h1>
+            <p class="text-sm text-rose-500 mt-1 font-medium" id="motivational-message">寶貝今天也很棒！準備好變強了嗎？💕</p>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="px-4 pt-4 pb-20">
+
+            <!-- VIEW 1: WORKOUT (今日訓練) -->
+            <section id="view-workout" class="view-section active">
+                
+                <!-- State: No Active Workout (Select Program) -->
+                <div id="workout-selection" class="space-y-4">
+                    <h2 class="text-lg font-bold text-gray-700 pl-2 mb-2">選擇訓練課表</h2>
+                    <div id="program-list-to-start" class="space-y-3">
+                        <!-- Programs injected here -->
+                    </div>
+                </div>
+
+                <!-- State: Active Workout -->
+                <div id="active-workout-container" class="hidden">
+                    <div class="flex justify-between items-center mb-4 pl-2">
+                        <h2 class="text-xl font-bold text-rose-600" id="active-program-name">課表名稱</h2>
+                        <span class="text-sm font-medium text-gray-500 bg-white/60 px-3 py-1 rounded-full shadow-sm" id="active-timer">00:00</span>
+                    </div>
+
+                    <div id="active-exercises-list" class="space-y-5">
+                        <!-- Exercises injected here -->
+                    </div>
+
+                    <button onclick="finishWorkout()" class="w-full mt-8 glass bg-rose-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-rose-200 active:scale-95 transition-transform">
+                        🎉 完成訓練 (Finish)
+                    </button>
+                    
+                    <button onclick="cancelWorkout()" class="w-full mt-4 text-gray-400 font-medium py-2 text-sm active:text-gray-600">
+                        取消本次訓練
+                    </button>
+                </div>
+            </section>
+
+            <!-- VIEW 2: PROGRAMS (課表管理) -->
+            <section id="view-programs" class="view-section">
+                <div class="flex justify-between items-center mb-4 pl-2">
+                    <h2 class="text-lg font-bold text-gray-700">我的專屬課表</h2>
+                    <button onclick="openProgramEditor()" class="bg-rose-100 text-rose-600 px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-1 active:bg-rose-200">
+                        <i class="ph-bold ph-plus"></i> 新增
+                    </button>
+                </div>
+                
+                <div id="programs-management-list" class="space-y-3">
+                    <!-- Programs injected here for editing -->
+                </div>
+            </section>
+
+            <!-- VIEW 3: CALENDAR (訓練日曆) -->
+            <section id="view-calendar" class="view-section">
+                <div class="glass-card rounded-3xl p-5 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <button onclick="changeMonth(-1)" class="p-2 text-rose-400 hover:text-rose-600"><i class="ph-bold ph-caret-left"></i></button>
+                        <h2 class="text-lg font-bold text-gray-800" id="calendar-month-year">2026年 9月</h2>
+                        <button onclick="changeMonth(1)" class="p-2 text-rose-400 hover:text-rose-600"><i class="ph-bold ph-caret-right"></i></button>
+                    </div>
+                    
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-400 mb-2">
+                        <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                    </div>
+                    
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center">
+                        <!-- Calendar days injected here -->
+                    </div>
+                </div>
+
+                <div id="calendar-day-details" class="glass-card rounded-3xl p-5 hidden">
+                    <h3 class="font-bold text-rose-500 mb-2 border-b border-rose-100 pb-2" id="detail-date">日期</h3>
+                    <div id="detail-content" class="text-sm text-gray-600 space-y-2">
+                        <!-- Details injected -->
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- BOTTOM NAVIGATION -->
+        <nav class="fixed bottom-0 left-0 w-full z-40 px-4 pb-6 pt-2">
+            <div class="max-w-md mx-auto glass rounded-full flex justify-around items-center py-3 px-2 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+                <button onclick="switchTab('workout')" id="tab-workout" class="flex flex-col items-center gap-1 w-20 active-tab transition-colors">
+                    <i class="ph ph-barbell text-2xl"></i>
+                    <span class="text-[10px] font-medium">訓練</span>
+                </button>
+                <button onclick="switchTab('programs')" id="tab-programs" class="flex flex-col items-center gap-1 w-20 text-gray-400 transition-colors">
+                    <i class="ph ph-list-dashes text-2xl"></i>
+                    <span class="text-[10px] font-medium">課表</span>
+                </button>
+                <button onclick="switchTab('calendar')" id="tab-calendar" class="flex flex-col items-center gap-1 w-20 text-gray-400 transition-colors">
+                    <i class="ph ph-calendar-heart text-2xl"></i>
+                    <span class="text-[10px] font-medium">日曆</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- MODALS & OVERLAYS -->
+        
+        <!-- Rest Timer Floating Widget / Overlay -->
+        <div id="rest-timer-widget" class="timer-floating hidden glass-card rounded-full pl-4 pr-2 py-2 flex items-center gap-3 shadow-xl border-rose-200 cursor-pointer" onclick="openTimerSettings()">
+            <div class="flex flex-col">
+                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider leading-none">休息中</span>
+                <span id="floating-timer-display" class="text-xl font-bold text-rose-600 leading-none mt-1">00:00</span>
+            </div>
+            <button onclick="stopRestTimer(event)" class="bg-rose-100 p-2 rounded-full text-rose-600 active:bg-rose-200">
+                <i class="ph-fill ph-stop"></i>
+            </button>
+        </div>
+
+        <!-- Timer Settings Modal -->
+        <div id="timer-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity">
+            <div class="glass-card w-full max-w-sm rounded-3xl p-6 transform scale-95 transition-transform" id="timer-modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg">設定休息時間 ⏱️</h3>
+                    <button onclick="closeTimerSettings()" class="text-gray-400"><i class="ph-bold ph-x text-xl"></i></button>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <button onclick="startRestTimer(30)" class="bg-rose-50 text-rose-600 font-medium py-3 rounded-2xl active:bg-rose-100 border border-rose-100">30秒</button>
+                    <button onclick="startRestTimer(60)" class="bg-rose-50 text-rose-600 font-medium py-3 rounded-2xl active:bg-rose-100 border border-rose-100">60秒</button>
+                    <button onclick="startRestTimer(90)" class="bg-rose-50 text-rose-600 font-medium py-3 rounded-2xl active:bg-rose-100 border border-rose-100">90秒</button>
+                    <button onclick="startRestTimer(120)" class="bg-rose-50 text-rose-600 font-medium py-3 rounded-2xl active:bg-rose-100 border border-rose-100">2分鐘</button>
+                    <button onclick="startRestTimer(180)" class="bg-rose-50 text-rose-600 font-medium py-3 rounded-2xl active:bg-rose-100 border border-rose-100">3分鐘</button>
+                </div>
+                
+                <div class="flex items-center gap-3 mt-4 border-t border-gray-100 pt-4">
+                    <span class="text-sm text-gray-500 font-medium whitespace-nowrap">自訂(秒):</span>
+                    <input type="number" id="custom-timer-input" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-center text-gray-700 font-medium focus:outline-none focus:border-rose-300" placeholder="e.g. 45">
+                    <button onclick="startCustomTimer()" class="bg-rose-500 text-white px-4 py-2 rounded-xl font-bold active:bg-rose-600">開始</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Program Editor Modal -->
+        <div id="program-editor-modal" class="fixed inset-0 bg-white z-50 hidden flex-col overflow-y-auto">
+            <div class="sticky top-0 glass px-4 py-4 flex justify-between items-center z-10 border-b border-gray-100">
+                <button onclick="closeProgramEditor()" class="text-gray-500 text-sm font-bold active:text-gray-800">取消</button>
+                <h3 class="font-bold text-gray-800" id="editor-title">編輯課表</h3>
+                <button onclick="saveProgram()" class="text-rose-500 text-sm font-bold active:text-rose-700">儲存</button>
+            </div>
+            
+            <div class="p-5 space-y-6">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">課表名稱</label>
+                    <input type="text" id="edit-prog-name" class="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 focus:outline-none focus:border-rose-400 focus:bg-white transition-colors" placeholder="例如: 蜜桃臀養成記 🍑">
+                </div>
+                
+                <div>
+                    <div class="flex justify-between items-end mb-3">
+                        <label class="block text-sm font-bold text-gray-700">訓練動作</label>
+                        <button onclick="addExerciseField()" class="text-xs text-rose-500 font-bold bg-rose-50 px-3 py-1 rounded-full"><i class="ph-bold ph-plus"></i> 新增動作</button>
+                    </div>
+                    <div id="edit-exercises-list" class="space-y-3">
+                        <!-- Dynamic inputs -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        let programs = JSON.parse(localStorage.getItem('gf_gym_programs')) || [];
+        let history = JSON.parse(localStorage.getItem('gf_gym_history')) || [];
+        let activeWorkout = JSON.parse(localStorage.getItem('gf_gym_active')) || null;
+        
+        // System variables
+        let workoutTimerInterval = null;
+        let restTimerInterval = null;
+        let audioCtx = null;
+        
+        const messages = [
+            "寶貝今天也很棒！💕", "流汗的妳最迷人 ✨", "再努力一下下就完成囉！🍑", 
+            "今天的妳比昨天更強！💪", "專注感受肌肉的收縮～", "累了就休息，不用勉強自己唷🥰"
+        ];
+
+        // Ensure default data exists
+        if (programs.length === 0) {
+            programs = [
+                { id: 'p1', name: '蜜桃臀養成 🍑', exercises: [
+                    { id: 'e1', name: '深蹲 (Squat)', targetSets: 4 },
+                    { id: 'e2', name: '臀推 (Hip Thrust)', targetSets: 4 },
+                    { id: 'e3', name: '羅馬尼亞硬舉 (RDL)', targetSets: 3 }
+                ]},
+                { id: 'p2', name: '上肢雕塑 💪', exercises: [
+                    { id: 'e4', name: '肩推 (Shoulder Press)', targetSets: 3 },
+                    { id: 'e5', name: '滑輪下拉 (Lat Pulldown)', targetSets: 4 },
+                    { id: 'e6', name: '二頭彎舉 (Bicep Curl)', targetSets: 3 }
+                ]}
+            ];
+            saveData();
+        }
+
+        // Initialize Audio context on first user interaction to comply with browser policies
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        document.body.addEventListener('click', initAudio, { once: true });
+
+        // --- CORE FUNCTIONS ---
+        
+        function saveData() {
+            localStorage.setItem('gf_gym_programs', JSON.stringify(programs));
+            localStorage.setItem('gf_gym_history', JSON.stringify(history));
+            localStorage.setItem('gf_gym_active', JSON.stringify(activeWorkout));
+        }
+
+        function setMotivationalMessage() {
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+            document.getElementById('motivational-message').innerText = msg;
+        }
+
+        // --- STREAMING_CHUNK:Navigation and UI Handling ---
+        
+        function switchTab(tabId) {
+            // Hide all
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => {
+                el.classList.remove('active-tab');
+                el.classList.add('text-gray-400');
+            });
+            
+            // Show target
+            document.getElementById(`view-${tabId}`).classList.add('active');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.remove('text-gray-400');
+            activeBtn.classList.add('active-tab');
+
+            // Titles
+            const titles = {
+                'workout': '<i class="ph-fill ph-heart text-rose-500"></i> 今日訓練',
+                'programs': '<i class="ph-fill ph-notebook text-rose-500"></i> 專屬課表',
+                'calendar': '<i class="ph-fill ph-calendar-heart text-rose-500"></i> 訓練紀錄'
+            };
+            document.getElementById('header-title').innerHTML = titles[tabId];
+
+            if (tabId === 'programs') renderProgramsView();
+            if (tabId === 'calendar') renderCalendar();
+            if (tabId === 'workout') renderWorkoutView();
+        }
+
+        // --- STREAMING_CHUNK:Workout Logic (History, Display, Progress) ---
+
+        function findPreviousRecord(exerciseName) {
+            // Search history backwards for this exercise
+            for (let i = history.length - 1; i >= 0; i--) {
+                const session = history[i];
+                const ex = session.exercises.find(e => e.name === exerciseName);
+                if (ex && ex.sets.length > 0) {
+                    // Find max weight set or just last set. Let's use the best performing set.
+                    let bestSet = ex.sets.reduce((prev, current) => (prev.weight > current.weight) ? prev : current);
+                    return bestSet;
+                }
+            }
+            return null;
+        }
+
+        function renderWorkoutView() {
+            setMotivationalMessage();
+            if (activeWorkout) {
+                document.getElementById('workout-selection').classList.add('hidden');
+                document.getElementById('active-workout-container').classList.remove('hidden');
+                renderActiveWorkout();
+                startWorkoutTimer();
+            } else {
+                document.getElementById('workout-selection').classList.remove('hidden');
+                document.getElementById('active-workout-container').classList.add('hidden');
+                
+                const list = document.getElementById('program-list-to-start');
+                list.innerHTML = programs.map(p => `
+                    <div class="glass-card rounded-2xl p-4 flex justify-between items-center border border-rose-100">
+                        <div>
+                            <h3 class="font-bold text-gray-800">${p.name}</h3>
+                            <p class="text-xs text-gray-500 mt-1">${p.exercises.length} 個動作</p>
+                        </div>
+                        <button onclick="startWorkout('${p.id}')" class="bg-rose-50 text-rose-600 font-bold px-4 py-2 rounded-xl text-sm hover:bg-rose-100 active:scale-95 transition-all">
+                            開始
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function startWorkout(programId) {
+            initAudio();
+            const prog = programs.find(p => p.id === programId);
+            activeWorkout = {
+                programId: prog.id,
+                programName: prog.name,
+                startTime: Date.now(),
+                exercises: prog.exercises.map(e => ({
+                    id: e.id,
+                    name: e.name,
+                    targetSets: e.targetSets,
+                    sets: []
+                }))
+            };
+            
+            // Auto-populate sets based on target
+            activeWorkout.exercises.forEach(ex => {
+                const prev = findPreviousRecord(ex.name);
+                for(let i=0; i < ex.targetSets; i++) {
+                    ex.sets.push({
+                        weight: prev ? prev.weight : '',
+                        reps: prev ? prev.reps : '',
+                        completed: false
+                    });
+                }
+            });
+
+            saveData();
+            renderWorkoutView();
+        }
+
+        function renderActiveWorkout() {
+            document.getElementById('active-program-name').innerText = activeWorkout.programName;
+            const container = document.getElementById('active-exercises-list');
+            
+            container.innerHTML = activeWorkout.exercises.map((ex, exIndex) => {
+                const prev = findPreviousRecord(ex.name);
+                const prevBadge = prev 
+                    ? `<span class="inline-block mt-1 text-[10px] font-medium bg-green-50 text-green-600 px-2 py-0.5 rounded border border-green-100">上次紀錄: ${prev.weight}kg x ${prev.reps}下</span>` 
+                    : `<span class="inline-block mt-1 text-[10px] font-medium bg-gray-100 text-gray-500 px-2 py-0.5 rounded">無歷史紀錄</span>`;
+
+                const setsHTML = ex.sets.map((set, setIndex) => `
+                    <div class="flex items-center gap-2 mb-2 ${set.completed ? 'opacity-50' : ''}" id="set-row-${exIndex}-${setIndex}">
+                        <div class="w-6 text-center text-xs font-bold text-gray-400">${setIndex + 1}</div>
+                        <div class="flex-1 relative">
+                            <input type="number" placeholder="重量" value="${set.weight}" 
+                                onchange="updateSet(${exIndex}, ${setIndex}, 'weight', this.value)"
+                                class="w-full bg-gray-50 border ${set.completed ? 'border-transparent' : 'border-gray-200'} rounded-lg px-2 py-2 text-center text-sm font-medium focus:outline-none focus:border-rose-300"
+                                ${set.completed ? 'disabled' : ''}>
+                            <span class="absolute right-2 top-2.5 text-[10px] text-gray-400">kg</span>
+                        </div>
+                        <div class="flex-1 relative">
+                            <input type="number" placeholder="次數" value="${set.reps}"
+                                onchange="updateSet(${exIndex}, ${setIndex}, 'reps', this.value)" 
+                                class="w-full bg-gray-50 border ${set.completed ? 'border-transparent' : 'border-gray-200'} rounded-lg px-2 py-2 text-center text-sm font-medium focus:outline-none focus:border-rose-300"
+                                ${set.completed ? 'disabled' : ''}>
+                            <span class="absolute right-2 top-2.5 text-[10px] text-gray-400">次</span>
+                        </div>
+                        <div class="w-10 flex justify-center">
+                            <input type="checkbox" class="set-check" ${set.completed ? 'checked' : ''} 
+                                onchange="toggleSet(${exIndex}, ${setIndex}, this.checked)">
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                <div class="glass-card rounded-2xl p-4">
+                    <h3 class="font-bold text-gray-800 text-lg">${ex.name}</h3>
+                    ${prevBadge}
+                    
+                    <div class="mt-4">
+                        <div class="flex items-center gap-2 mb-2 px-1">
+                            <div class="w-6 text-center text-[10px] text-gray-400">組數</div>
+                            <div class="flex-1 text-center text-[10px] text-gray-400">重量(kg)</div>
+                            <div class="flex-1 text-center text-[10px] text-gray-400">次數(Reps)</div>
+                            <div class="w-10 text-center text-[10px] text-gray-400"><i class="ph-fill ph-check-circle"></i></div>
+                        </div>
+                        ${setsHTML}
+                        <button onclick="addSet(${exIndex})" class="w-full mt-2 py-1.5 bg-gray-50 text-gray-500 rounded-lg text-xs font-medium active:bg-gray-100">+ 新增一組</button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function updateSet(exIndex, setIndex, field, value) {
+            activeWorkout.exercises[exIndex].sets[setIndex][field] = value;
+            saveData();
+        }
+
+        function addSet(exIndex) {
+            const ex = activeWorkout.exercises[exIndex];
+            // Copy last set values
+            const lastSet = ex.sets.length > 0 ? ex.sets[ex.sets.length - 1] : {weight: '', reps: ''};
+            ex.sets.push({
+                weight: lastSet.weight,
+                reps: lastSet.reps,
+                completed: false
+            });
+            saveData();
+            renderActiveWorkout();
+        }
+
+        function toggleSet(exIndex, setIndex, isCompleted) {
+            activeWorkout.exercises[exIndex].sets[setIndex].completed = isCompleted;
+            saveData();
+            renderActiveWorkout();
+            
+            if (isCompleted) {
+                // Trigger pop animation on the row
+                const row = document.getElementById(`set-row-${exIndex}-${setIndex}`);
+                if(row) {
+                    row.classList.add('pop-anim');
+                    setTimeout(() => row.classList.remove('pop-anim'), 200);
+                }
+                // Open timer suggestion
+                openTimerSettings();
+            }
+        }
+
+        function cancelWorkout() {
+            if(confirm("確定要取消這次訓練嗎？紀錄將不會保存。")) {
+                activeWorkout = null;
+                saveData();
+                stopRestTimer();
+                clearInterval(workoutTimerInterval);
+                renderWorkoutView();
+            }
+        }
+
+        function finishWorkout() {
+            // Filter out uncompleted sets
+            const completedExercises = activeWorkout.exercises.map(ex => {
+                const cSets = ex.sets.filter(s => s.completed && s.weight && s.reps);
+                return { name: ex.name, sets: cSets };
+            }).filter(ex => ex.sets.length > 0);
+
+            if (completedExercises.length === 0) {
+                alert("還沒有完成任何一組紀錄喔！");
+                return;
+            }
+
+            // Calculate volume
+            let totalVolume = 0;
+            completedExercises.forEach(ex => {
+                ex.sets.forEach(s => {
+                    totalVolume += (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0);
+                });
+            });
+
+            // Save to history
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            
+            const sessionData = {
+                id: 'hist_' + Date.now(),
+                date: dateStr,
+                programName: activeWorkout.programName,
+                exercises: completedExercises,
+                volume: totalVolume,
+                duration: Math.floor((Date.now() - activeWorkout.startTime) / 60000) // in minutes
+            };
+            
+            history.push(sessionData);
+            activeWorkout = null;
+            saveData();
+            
+            stopRestTimer();
+            clearInterval(workoutTimerInterval);
+            
+            alert(`🎉 恭喜完成訓練！\n本次總容量: ${totalVolume} kg\n花費時間: ${sessionData.duration} 分鐘\n寶貝超棒的！`);
+            renderWorkoutView();
+        }
+
+        // --- STREAMING_CHUNK:Timer Logic (Background Resilient) ---
+
+        function startWorkoutTimer() {
+            if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+            const display = document.getElementById('active-timer');
+            
+            workoutTimerInterval = setInterval(() => {
+                if(!activeWorkout) return clearInterval(workoutTimerInterval);
+                const diff = Math.floor((Date.now() - activeWorkout.startTime) / 1000);
+                const m = String(Math.floor(diff / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                display.innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function openTimerSettings() {
+            const modal = document.getElementById('timer-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                document.getElementById('timer-modal-content').classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeTimerSettings() {
+            const modal = document.getElementById('timer-modal');
+            modal.classList.add('opacity-0');
+            document.getElementById('timer-modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function startCustomTimer() {
+            const val = parseInt(document.getElementById('custom-timer-input').value);
+            if(val > 0) startRestTimer(val);
+        }
+
+        function startRestTimer(seconds) {
+            initAudio();
+            closeTimerSettings();
+            
+            // Calculate absolute end time
+            const endTime = Date.now() + (seconds * 1000);
+            localStorage.setItem('gf_gym_timerEnd', endTime);
+            
+            document.getElementById('rest-timer-widget').classList.remove('hidden');
+            
+            if (restTimerInterval) clearInterval(restTimerInterval);
+            
+            // Request Notification permission if supported
+            if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission();
+            }
+            
+            restTimerInterval = setInterval(updateRestTimerUI, 200); // Fast tick for responsiveness
+            updateRestTimerUI(); // initial call
+        }
+
+        function updateRestTimerUI() {
+            const endTime = parseInt(localStorage.getItem('gf_gym_timerEnd'));
+            if (!endTime) {
+                stopRestTimer();
+                return;
+            }
+
+            const remaining = Math.ceil((endTime - Date.now()) / 1000);
+            
+            if (remaining <= 0) {
+                stopRestTimer();
+                playDing();
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification("休息結束啦！", { body: "寶貝準備好迎接下一組了嗎？💪", icon: "https://cdn-icons-png.flaticon.com/512/833/833472.png" });
+                }
+                return;
+            }
+
+            const m = String(Math.floor(remaining / 60)).padStart(2, '0');
+            const s = String(remaining % 60).padStart(2, '0');
+            document.getElementById('floating-timer-display').innerText = `${m}:${s}`;
+        }
+
+        function stopRestTimer(e) {
+            if(e) e.stopPropagation();
+            clearInterval(restTimerInterval);
+            localStorage.removeItem('gf_gym_timerEnd');
+            document.getElementById('rest-timer-widget').classList.add('hidden');
+        }
+
+        function playDing() {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'sine';
+            // Play a pleasant high-pitched double chime
+            oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+            
+            setTimeout(() => {
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.frequency.setValueAtTime(1108.73, audioCtx.currentTime); // C#6
+                gain2.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+                osc2.start(audioCtx.currentTime);
+                osc2.stop(audioCtx.currentTime + 1);
+            }, 150);
+        }
+
+        // Check if timer was running before page reload
+        window.addEventListener('load', () => {
+            const savedEnd = localStorage.getItem('gf_gym_timerEnd');
+            if (savedEnd && parseInt(savedEnd) > Date.now()) {
+                document.getElementById('rest-timer-widget').classList.remove('hidden');
+                restTimerInterval = setInterval(updateRestTimerUI, 200);
+            }
+        });
+
+        // --- STREAMING_CHUNK:Program Editor Logic ---
+
+        let editingProgramId = null;
+
+        function renderProgramsView() {
+            const list = document.getElementById('programs-management-list');
+            list.innerHTML = programs.map(p => `
+                <div class="glass-card rounded-2xl p-4 mb-3 border border-rose-100">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-bold text-gray-800">${p.name}</h3>
+                        <div class="flex gap-2">
+                            <button onclick="editProgram('${p.id}')" class="text-gray-400 hover:text-rose-500"><i class="ph-fill ph-pencil-simple text-lg"></i></button>
+                            <button onclick="deleteProgram('${p.id}')" class="text-gray-400 hover:text-rose-500"><i class="ph-fill ph-trash text-lg"></i></button>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-500 flex flex-wrap gap-1">
+                        ${p.exercises.map(e => `<span class="bg-gray-100 px-2 py-0.5 rounded text-[10px]">${e.name}</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openProgramEditor(progId = null) {
+            editingProgramId = progId;
+            document.getElementById('program-editor-modal').classList.remove('hidden');
+            document.getElementById('program-editor-modal').classList.add('flex');
+            
+            const exList = document.getElementById('edit-exercises-list');
+            
+            if (progId) {
+                const prog = programs.find(p => p.id === progId);
+                document.getElementById('edit-prog-name').value = prog.name;
+                document.getElementById('editor-title').innerText = '編輯課表';
+                exList.innerHTML = '';
+                prog.exercises.forEach(ex => appendExerciseField(ex.name, ex.targetSets));
+            } else {
+                document.getElementById('edit-prog-name').value = '';
+                document.getElementById('editor-title').innerText = '新增課表';
+                exList.innerHTML = '';
+                appendExerciseField('', 3); // Default one empty field
+            }
+        }
+
+        function closeProgramEditor() {
+            document.getElementById('program-editor-modal').classList.add('hidden');
+            document.getElementById('program-editor-modal').classList.remove('flex');
+        }
+
+        function appendExerciseField(name = '', sets = 3) {
+            const id = 'ex_' + Date.now() + Math.random();
+            const html = `
+                <div class="flex gap-2 items-center bg-white p-3 rounded-xl border border-gray-100 shadow-sm" id="${id}">
+                    <div class="flex-1">
+                        <input type="text" placeholder="動作名稱 (例: 深蹲)" value="${name}" class="ex-name w-full text-sm font-bold text-gray-700 focus:outline-none mb-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400">目標組數:</span>
+                            <input type="number" value="${sets}" class="ex-sets w-12 text-center text-xs border border-gray-200 rounded px-1 py-0.5 focus:outline-none">
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('${id}').remove()" class="text-red-400 p-2"><i class="ph-bold ph-trash"></i></button>
+                </div>
+            `;
+            document.getElementById('edit-exercises-list').insertAdjacentHTML('beforeend', html);
+        }
+
+        function addExerciseField() {
+            appendExerciseField();
+        }
+
+        function saveProgram() {
+            const name = document.getElementById('edit-prog-name').value.trim();
+            if (!name) return alert("請填寫課表名稱喔！");
+
+            const exElements = document.getElementById('edit-exercises-list').children;
+            const exercises = [];
+            for (let el of exElements) {
+                const exName = el.querySelector('.ex-name').value.trim();
+                const exSets = parseInt(el.querySelector('.ex-sets').value) || 3;
+                if (exName) {
+                    exercises.push({ id: 'e_' + Date.now() + Math.random(), name: exName, targetSets: exSets });
+                }
+            }
+
+            if (exercises.length === 0) return alert("最少要加入一個動作！");
+
+            if (editingProgramId) {
+                const idx = programs.findIndex(p => p.id === editingProgramId);
+                programs[idx].name = name;
+                programs[idx].exercises = exercises;
+            } else {
+                programs.push({
+                    id: 'p_' + Date.now(),
+                    name: name,
+                    exercises: exercises
+                });
+            }
+
+            saveData();
+            closeProgramEditor();
+            renderProgramsView();
+        }
+
+        function deleteProgram(id) {
+            if (confirm("確定要刪除這個課表嗎？")) {
+                programs = programs.filter(p => p.id !== id);
+                saveData();
+                renderProgramsView();
+            }
+        }
+
+        function editProgram(id) {
+            openProgramEditor(id);
+        }
+
+        // --- STREAMING_CHUNK:Calendar Logic ---
+
+        let currentCalDate = new Date();
+
+        function renderCalendar() {
+            const year = currentCalDate.getFullYear();
+            const month = currentCalDate.getMonth(); // 0-11
+            
+            document.getElementById('calendar-month-year').innerText = `${year}年 ${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            // Empty slots
+            for(let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div></div>`;
+            }
+            
+            // Days
+            for(let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                // Find if history exists for this date
+                const daySessions = history.filter(h => h.date === dateStr);
+                const hasWorkout = daySessions.length > 0;
+                
+                const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+                
+                const baseClasses = "w-10 h-10 mx-auto rounded-full flex flex-col items-center justify-center relative cursor-pointer active:scale-95 transition-transform";
+                let dayClasses = hasWorkout ? "bg-rose-100 text-rose-700 font-bold" : "text-gray-600";
+                if (isToday && !hasWorkout) dayClasses += " border border-rose-300 font-bold";
+                
+                const dot = hasWorkout ? `<div class="w-1.5 h-1.5 rounded-full bg-rose-500 absolute bottom-1"></div>` : '';
+                
+                grid.innerHTML += `
+                    <div class="${baseClasses} ${dayClasses}" onclick="showDayDetails('${dateStr}', ${d})">
+                        <span class="text-sm">${d}</span>
+                        ${dot}
+                    </div>
+                `;
+            }
+        }
+
+        function changeMonth(delta) {
+            currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function showDayDetails(dateStr, dayNum) {
+            const sessions = history.filter(h => h.date === dateStr);
+            const detailContainer = document.getElementById('calendar-day-details');
+            
+            document.getElementById('detail-date').innerText = `${currentCalDate.getFullYear()}年${currentCalDate.getMonth() + 1}月${dayNum}日`;
+            
+            if (sessions.length === 0) {
+                document.getElementById('detail-content').innerHTML = '<p class="text-center text-gray-400 py-4">這天休息唷，充飽電再出發！✨</p>';
+            } else {
+                let html = '';
+                sessions.forEach((s, idx) => {
+                    html += `
+                        <div class="mb-4 bg-rose-50/50 p-3 rounded-xl border border-rose-100">
+                            <h4 class="font-bold text-rose-600 mb-1 flex items-center gap-1"><i class="ph-fill ph-fire"></i> ${s.programName}</h4>
+                            <p class="text-xs text-gray-500 mb-2">總容量: ${s.volume}kg | 歷時: ${s.duration}分鐘</p>
+                            <ul class="text-xs space-y-1">
+                                ${s.exercises.map(ex => `
+                                    <li class="flex justify-between border-b border-rose-100/50 pb-1">
+                                        <span class="font-medium text-gray-700">${ex.name}</span>
+                                        <span class="text-gray-500">${ex.sets.length} 組</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                });
+                document.getElementById('detail-content').innerHTML = html;
+            }
+            detailContainer.classList.remove('hidden');
+            detailContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- INIT ---
+        window.onload = () => {
+            switchTab('workout');
+            // If active workout exists, start the timer visually immediately
+            if (activeWorkout) {
+                startWorkoutTimer();
+            }
+        };
+
+    </script>
+</body>
+</html>
